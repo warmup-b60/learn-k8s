@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: roboshop
-          image: roboshop/frontend:1.0
+          image: public.ecr.aws/w2x3d9u7/roboshop/frontend:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
@@ -62,11 +62,384 @@ metadata:
   labels:
     app: frontend
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   selector:
     app: frontend
   ports:
     - name: http
       port: 80
       targetPort: 80
+      protocol: TCP
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalogue
+  labels:
+    app: catalogue
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: catalogue
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: catalogue
+    spec:
+      containers:
+        - name: roboshop
+          image: public.ecr.aws/w2x3d9u7/roboshop/catalogue:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          env:
+            - name: MONGO_URL
+              value: "mongodb://mongo.roboshop.svc.cluster.local:27017/roboshop"
+            - name: LOG_LEVEL
+              value: "info"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+
+--- 
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalogue-svc
+  labels:
+    app: catalogue
+spec:
+  type: ClusterIP
+  selector:
+    app: catalogue
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user
+  labels:
+    app: user
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: user
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: user
+    spec:
+      containers:
+        - name: roboshop
+          image: public.ecr.aws/w2x3d9u7/roboshop/user:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          env:
+            - name: MONGO_URL
+              value: "mongodb://mongo.roboshop.svc.cluster.local:27017/roboshop"
+            - name: LOG_LEVEL
+              value: "info"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+
+--- 
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-svc
+  labels:
+    app: user
+spec:
+  type: ClusterIP
+  selector:
+    app: user
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cart
+  labels:
+    app: cart
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: cart
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: cart
+    spec:
+      containers:
+        - name: roboshop
+          image: public.ecr.aws/w2x3d9u7/roboshop/cart:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          env:
+            - name: MONGO_URL
+              value: "mongodb://mongo.roboshop.svc.cluster.local:27017/roboshop"
+            - name: LOG_LEVEL
+              value: "info"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+
+--- 
+apiVersion: v1
+kind: Service
+metadata:
+  name: cart-svc
+  labels:
+    app: cart
+spec:
+  type: ClusterIP
+  selector:
+    app: cart
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shipping
+  labels:
+    app: shipping
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: shipping
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: shipping
+    spec:
+      containers:
+        - name: roboshop
+          image: public.ecr.aws/w2x3d9u7/roboshop/shipping:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          env:
+            - name: MONGO_URL
+              value: "mongodb://mongo.roboshop.svc.cluster.local:27017/roboshop"
+            - name: LOG_LEVEL
+              value: "info"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+
+--- 
+apiVersion: v1
+kind: Service
+metadata:
+  name: shipping-svc
+  labels:
+    app: shipping
+spec:
+  type: ClusterIP
+  selector:
+    app: shipping
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment
+  labels:
+    app: payment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: payment
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: payment
+    spec:
+      containers:
+        - name: roboshop
+          image: public.ecr.aws/w2x3d9u7/roboshop/payment:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          env:
+            - name: MONGO_URL
+              value: "mongodb://mongo.roboshop.svc.cluster.local:27017/roboshop"
+            - name: LOG_LEVEL
+              value: "info"
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 3
+
+--- 
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-svc
+  labels:
+    app: shipping
+spec:
+  type: ClusterIP
+  selector:
+    app: payment
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
       protocol: TCP
