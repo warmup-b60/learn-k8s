@@ -101,10 +101,12 @@ spec:
           ports:
             - containerPort: 80
           env:
-            - name: MONGO
+            - name: MONGO_URL
               value: "mongodb://mongodb-dev.roboshop.internal:27017/roboshop"
             - name: LOG_LEVEL
               value: "info"
+            - name: MONGO
+              value: true
           resources:
             requests:
               cpu: "100m"
